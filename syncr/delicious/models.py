@@ -5,7 +5,7 @@ import hashlib
 
 class Bookmark(models.Model):
     # description, href, tags, extended, dt
-    description = models.CharField(max_length=250, blank=True)
+    description = models.CharField(max_length=255, blank=True)
     # URLField won't allow unique=True when max_length is more than 255,
     # but we need to allow longer URLs...
     url = models.URLField(max_length=2000)
@@ -34,7 +34,7 @@ class Bookmark(models.Model):
         '''
         Override default save method, so we can computer the url_hash.
         '''
-        self.url_hash = hashlib.md5(self.url).hexdigest()
+        self.url_hash = hashlib.md5(self.url.encode('utf-8')).hexdigest()
         super(Bookmark, self).save(*args, **kwargs) # Call the "real" save() method.
 
     def local_saved_date(self):
