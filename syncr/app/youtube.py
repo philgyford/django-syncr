@@ -12,6 +12,11 @@ YOUTUBE_NS      = 'http://gdata.youtube.com/schemas/2007'
 GDATA_NS        = 'http://schemas.google.com/g/2005'
 MRSS_NS         = 'http://search.yahoo.com/mrss/'
 
+
+class VideoSyncFailed(Exception):
+    pass
+
+
 class YoutubeSyncr:
     """YoutubeSyncr objects synchronize Youtube information with Django
     via the GData API. The Youtube API requires no authentication, so
@@ -63,7 +68,11 @@ class YoutubeSyncr:
         Required arguments
           video_feed: a Youtube video GData feed URL
         """
-        result = self._request(video_feed)
+        try:
+            result = self._request(video_feed)
+        except:
+            raise VideoSyncFailed
+        
         video_id = result.findtext('{%s}id' % ATOM_NS).replace('http://' + self._youtubeGDataHost + self._youtubeFeedBase + 'videos/', '')
         default_dict = {
 	    'feed': video_feed,
@@ -182,8 +191,11 @@ class YoutubeSyncr:
         obj, created = Playlist.objects.get_or_create(feed = playlist_feed,
                                                       defaults=default_dict)
         for video in result.findall('{%s}entry' % ATOM_NS):
-            plist_video = self._syncPlaylistVideo(video)
-            obj.videos.add(plist_video)
+            try:
+                plist_video = self._syncPlaylistVideo(video)
+                obj.videos.add(plist_video)
+            except VideoSyncFailed:
+                pass
         return obj
 
     def syncUserPlaylists(self, username):
@@ -237,8 +249,11 @@ class YoutubeSyncr:
     def _syncFeedPage(self, feedURL, startIndex=None, maxResults=None):
         result = self._request('?'.join((feedURL, self._getSyncFeedParams(startIndex, maxResults))))
         for entry in result.findall('{%s}entry' % ATOM_NS):
-            video = self.syncVideoFeed(entry.findtext('{%s}id' % ATOM_NS))
-            yield video
+            try:
+                video = self.syncVideoFeed(entry.findtext('{%s}id' % ATOM_NS))
+                yield video
+            except VideoSyncFailed:
+                pass
 
     def _syncFeed(self, feedURL):
         startIndex = 1
