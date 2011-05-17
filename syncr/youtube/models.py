@@ -11,7 +11,7 @@ class Video(models.Model):
     title       = models.CharField(max_length=250)
     author      = models.ForeignKey('YoutubeUser')
     description = models.TextField(blank=True)
-    tag_list    = models.CharField(max_length=250)
+    tag_list    = models.TextField(blank=True)
     view_count  = models.PositiveIntegerField()
     url         = models.URLField()
     thumbnail_url = models.URLField(blank=True)
