@@ -10,7 +10,7 @@ class Bookmark(models.Model):
     # but we need to allow longer URLs...
     url = models.URLField(max_length=2000)
     # ...so we generate a hash based on the URL and make sure that's unique.
-    url_hash = models.CharField(max_length=32, unique=True, editable=False) 
+    url_hash = models.CharField(max_length=32, unique=True) 
     tags = TagField()
     extended_info = models.TextField(blank=True)
     post_hash = models.CharField(max_length=100)
