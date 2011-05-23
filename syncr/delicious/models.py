@@ -8,12 +8,13 @@ class Bookmark(models.Model):
     description = models.CharField(max_length=255, blank=True)
     # URLField won't allow unique=True when max_length is more than 255,
     # but we need to allow longer URLs...
-    url = models.URLField(max_length=2000)
+    url = models.URLField(max_length=2000, verbose_name='URL')
     # ...so we generate a hash based on the URL and make sure that's unique.
-    url_hash = models.CharField(max_length=32, unique=True) 
+    url_hash = models.CharField(max_length=32, unique=True, verbose_name='URL hash',
+            help_text="Hash based on the URL to ensure URLs are unique")
     tags = TagField()
     extended_info = models.TextField(blank=True)
-    post_hash = models.CharField(max_length=100)
+    post_hash = models.CharField(max_length=100, help_text="Delicious's identifier for this bookmark")
     saved_date = models.DateTimeField()
 
     class Meta:
