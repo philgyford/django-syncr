@@ -399,7 +399,7 @@ class FlickrSyncr:
             result = self.flickr.favorites_getPublicList(user_id=nsid,
                         per_page=500, page=page+1)
 
-    def syncPhotoSet(self, photoset_id, order=None):
+    def syncPhotoSet(self, photoset_id, order=0):
         """
         Synchronize a single flickr photo set based on the set id.
 
