@@ -16,15 +16,20 @@ class TwitterSyncr:
     This app depends on python-twitter:
     http://code.google.com/p/python-twitter/
     """
-    def __init__(self, username, password):
+    def __init__(self, consumer_key, consumer_secret, access_token_key, access_token_secret):
         """Construct a new TwitterSyncr object.
 
         Required arguments
-          username: the Twitter user to use for authentication
-          password: the Twitter user's password to use for auth
+          consumer_key: the Twitter app consumer key for authentication
+          consumer_secret: the Twitter app consumer secret for authentication
+          access_token_key: the Twitter app access token key for authentication
+          access_token_secret: the Twitter app access token secret for authentication
         """
-        self.username = username
-        self.api = twitter.Api(username=username, password=password)
+        self.api = twitter.Api(
+                consumer_key=consumer_key,
+                consumer_secret=consumer_secret,
+                access_token_key=access_token_key,
+                access_token_secret=access_token_secret)
 
         self.user_cache = dict()
 
@@ -124,12 +129,10 @@ class TwitterSyncr:
             obj = self._syncTwitterUser(friend)
             user_obj.friends.add(obj)
 
-    def syncFollowers(self):
-        """Synchronize the Twitter user's followers with Django. This
-        only works for the username who is authenticated in the API
-        object.
+    def syncFollowers(self, user):
+        """Synchronize the Twitter user's followers with Django.
         """
-        user_obj = self._syncTwitterUser(self._getUser(self.username))
+        user_obj = self._syncTwitterUser(self._getUser(user))
         followers = self.api.GetFollowers()
 
         # sync our list of twitter.User objs into ORM
