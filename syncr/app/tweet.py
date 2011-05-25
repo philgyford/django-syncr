@@ -142,16 +142,15 @@ class TwitterSyncr:
             obj = self._syncTwitterUser(follower)
             user_obj.followers.add(obj)
 
-    def syncFriendsTweets(self, user):
-        """Synchronize the tweets of a Twitter user's friends (currently
-        only the last 20 updates). Also automatically add these users
+    def syncFriendsTweets(self):
+        """Synchronize the tweets of the authenticated Twitter user's friends 
+        (currently only the last 20 updates). Also automatically add these users
         as friends in the Django database, if they aren't already.
 
-        Required arguments
-          user: the Twitter username whose friend's tweets will sync
+        NOTE: Only works on the currently authenticated user.
         """
-        friend_updates = self.api.GetFriendsTimeline(user)
-        user_obj = self._syncTwitterUser(self._getUser(user))
+        friend_updates = self.api.GetFriendsTimeline()
+        user_obj = self._syncTwitterUser(self._getUser(self.username))
         
         # loop through twitter.Status objects and sync them
         for update in friend_updates:
