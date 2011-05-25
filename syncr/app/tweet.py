@@ -16,15 +16,17 @@ class TwitterSyncr:
     This app depends on python-twitter:
     http://code.google.com/p/python-twitter/
     """
-    def __init__(self, consumer_key, consumer_secret, access_token_key, access_token_secret):
+    def __init__(self, username consumer_key, consumer_secret, access_token_key, access_token_secret):
         """Construct a new TwitterSyncr object.
 
         Required arguments
+          username: the Twitter username associated with the OAuth credentials
           consumer_key: the Twitter app consumer key for authentication
           consumer_secret: the Twitter app consumer secret for authentication
           access_token_key: the Twitter app access token key for authentication
           access_token_secret: the Twitter app access token secret for authentication
         """
+        self.username = username
         self.api = twitter.Api(
                 consumer_key=consumer_key,
                 consumer_secret=consumer_secret,
