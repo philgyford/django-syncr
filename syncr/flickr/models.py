@@ -16,21 +16,6 @@ FLICKR_LICENSES = (
     ('6', 'Attribution-NoDerivs License'),
 )
 
-class BigIntegerField(models.IntegerField):
-    """
-    Defines a PostgreSQL compatible IntegerField needed to prevent 'integer
-    out of range' with large numbers.
-    """
-    def get_internal_type(self):
-        return 'BigIntegerField'
-
-    def db_type(self, connection):
-        if settings.DATABASE_ENGINE == 'oracle':
-            db_type = 'NUMBER(19)'
-        else:
-            db_type = 'bigint'
-        return db_type
-
 class Photo(models.Model):
     flickr_id = BigIntegerField(unique=True)
     owner = models.CharField(max_length=50)

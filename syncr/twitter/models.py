@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-from syncr.flickr.models import BigIntegerField
 
 class Tweet(models.Model):
     pub_time    = models.DateTimeField(db_index=True)
