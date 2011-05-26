@@ -17,7 +17,7 @@ FLICKR_LICENSES = (
 )
 
 class Photo(models.Model):
-    flickr_id = BigIntegerField(unique=True)
+    flickr_id = models.BigIntegerField(unique=True)
     owner = models.CharField(max_length=50)
     owner_nsid = models.CharField(max_length=50)
     title = models.CharField(max_length=200)

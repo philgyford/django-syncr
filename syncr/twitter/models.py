@@ -3,7 +3,7 @@ from django.conf import settings
 
 class Tweet(models.Model):
     pub_time    = models.DateTimeField(db_index=True)
-    twitter_id  = BigIntegerField(unique=True)
+    twitter_id  = models.BigIntegerField(unique=True)
     text        = models.TextField()
     user        = models.ForeignKey('TwitterUser')
 
