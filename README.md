@@ -105,10 +105,10 @@ Based on the [original docs at Google Code](http://code.google.com/p/django-sync
 	from syncr.app.flickr import FlickrSyncr
     f = FlickrSyncr(FLICKR_API_KEY, FLICKR_API_SECRET)
     
-    \# sync all my photos from the past week...
+    # sync all my photos from the past week...
     f.syncRecentPhotos('username', days=7)
     
-    \# sync my favorite photos list
+    # sync my favorite photos list
     f.syncPublicFavorites('username')
 	```
 
