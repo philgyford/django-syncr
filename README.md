@@ -90,7 +90,8 @@ Based on the [original docs at Google Code](http://code.google.com/p/django-sync
 3. Add the required apps to the INSTALLED_APPS in your Django settings file.
    eg:
 
-	```INSTALLED_APPS = (
+	```python
+	INSTALLED_APPS = (
 	...
 	'syncr.flickr',
 	'syncr.twitter',
@@ -100,7 +101,8 @@ Based on the [original docs at Google Code](http://code.google.com/p/django-sync
 4. Write code that will access the methods in the appropriate module in
    syncr/app/\*.py eg:
 
-	```from syncr.app.flickr import FlickrSyncr
+	```python
+	from syncr.app.flickr import FlickrSyncr
     f = FlickrSyncr(FLICKR_API_KEY, FLICKR_API_SECRET)
     
     \# sync all my photos from the past week...
