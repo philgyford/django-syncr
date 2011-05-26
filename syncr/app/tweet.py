@@ -93,12 +93,25 @@ class TwitterSyncr:
                         'text': smart_unicode(status.text),
                         'user': user,
                         }
+
+        if status.coordinates:
+            default_dict['coordinates_latitude'] = status.coordinates['coordinates'][1]
+            default_dict['coordinates_longitude'] = status.coordinates['coordinates'][0]
+
+        if status.in_reply_to_status_id:
+            reply_tweet = self.syncTweet(status.in_reply_to_status_id)
+            default_dict['in_reply_to_tweet'] = reply_tweet
+            default_dict['in_reply_to_user'] = reply_tweet.user
+
         obj, created = Tweet.objects.get_or_create(twitter_id = status.id,
                                                    defaults = default_dict)
         return obj
 
     def syncTweet(self, status_id):
         """Synchronize a Twitter status update by id
+
+        If the tweet is in reply to another, that (and its user) will be fetched,
+        and so on, recursively.
 
         Required arguments
           status_id: a Twitter status update id

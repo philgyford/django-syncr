@@ -6,6 +6,10 @@ class Tweet(models.Model):
     twitter_id  = models.BigIntegerField(unique=True)
     text        = models.TextField()
     user        = models.ForeignKey('TwitterUser')
+    coordinates_latitude    = models.FloatField(null=True)
+    coordinates_longitude   = models.FloatField(null=True)
+    in_reply_to_tweet       = models.ForeignKey('self', null=True)
+    in_reply_to_user        = models.ForeignKey('TwitterUser', related_name='+', null=True)
 
     def __unicode__(self):
         return u'%s %s' % (self.user.screen_name, self.pub_time)
