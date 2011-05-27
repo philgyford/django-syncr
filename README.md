@@ -17,6 +17,10 @@ It's possible to install only the apps for the services you want to sync with. S
 
 django-syncr provides no views or templates for viewing your locally-stored data, although you can access it all via the Django admin, if you're using that.
 
+There are currently [South](http://south.aeracode.org/) migrations provided for the Delicious, Flickr, Twitter and YouTube apps.
+
+[Phil Gyford](http://www.gyford.com/), 27 May 2011.
+
 
 ## Services
 
