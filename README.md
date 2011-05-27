@@ -70,12 +70,14 @@ Fetches a user's playlists, favorites and uploads. Stores data about videos such
 
 ### Brightkite
 
-**No longer works.** Brightkite have removed their "check in" functionality which this app used to sync. This app may be removed in future.
+**No longer works.** 
+
+Brightkite have removed their "check in" functionality which this app used to sync.
 
 
 ### Magnolia
 
-**Service no longer exists.** This app has been removed.
+**Service no longer exists.**
 
 
 
