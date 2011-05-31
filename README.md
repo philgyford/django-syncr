@@ -2,7 +2,7 @@
 
 **A collection of Django applications for saving your activity on other websites (such as Flickr, Twitter, YouTube, etc) in your local database.** 
 
-This project was begun by Jesse Legg [at Google Code](http://code.google.com/p/django-syncr/), which seemed to stop in 2008. Dan Fairs [did some updates](https://github.com/danfairs/django-syncr) until 2010. Phil Gyford [is currently working on this fork](https://github.com/philgyford/django-syncr).
+This project was begun by Jesse Legg [at Google Code](http://code.google.com/p/django-syncr/), which seemed to stop in 2008. Dan Fairs [did some updates](https://github.com/danfairs/django-syncr) until 2010. Phil Gyford [is currently working on this fork](https://github.com/philgyford/django-syncr). See "Changes from earlier versions" below for what's new.
 
 See [the Issues](https://github.com/philgyford/django-syncr/issues) for known new issues, or the [Google Code issues](http://code.google.com/p/django-syncr/issues/list) for older ones, possibly still extant.
 
@@ -15,11 +15,11 @@ django-syncr consists of one app per third-party service. Each app has a set of 
 
 It's possible to install only the apps for the services you want to sync with. Syncing is only one-way (changes to your local database are not pushed to third-party services). If changes are made on third-party services, it's not automatic that those changes will be pulled back to your local database. 
 
-django-syncr provides no views or templates for viewing your locally-stored data, although you can access it all via the Django admin, if you're using that.
+django-syncr provides no views or templates for viewing your locally-stored data, although you can access it all via the Django admin if you're using that.
 
 There are currently [South](http://south.aeracode.org/) migrations provided for the Delicious, Flickr, Twitter and YouTube apps.
 
-[Phil Gyford](http://www.gyford.com/), 27 May 2011.
+[Phil Gyford](http://www.gyford.com/), 31 May 2011.
 
 
 ## Services
@@ -117,6 +117,27 @@ Based on the [original docs at Google Code](http://code.google.com/p/django-sync
     # sync my favorite photos list
     f.syncPublicFavorites('username')
 	```
+
+
+## Changes from earlier versions
+
+If you're using a version of django-syncr last updated prior to May 2011, here
+are the major changes I've made:
+
+* **Made Twitter work with OAuth.** It now requires you to register a new Twitter
+  app and provide the app's consumer key, consumer secret, access token and
+  access token secret.
+* **Differentiate Twitter users by Twitter ID, not username.** Because
+  usernames can change. This means that previously-synced users may be
+  duplicated if you start using the new code.
+* **Add in-reply-to and lat/long coordinates for tweets.** The former means we
+  also sync any earlier tweets in a conversation, which results in more
+  requests.
+* **Record Twitter users' privacy setting.** Each user now has a 'protected'
+  boolean property, as do their tweets.
+* **Add [South](http://south.aeracode.org/) migrations.** For apps which have
+  been worked on.
+
 
 
 More documentation may come at a later date.
