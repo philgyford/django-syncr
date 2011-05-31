@@ -3,10 +3,10 @@ from syncr.twitter.models import Tweet, TwitterUser
 
 class TweetAdmin(admin.ModelAdmin):
 	date_hierarchy = 'pub_time'
-	list_display = ('user', 'pub_time', 'text')
+	list_display = ('user', 'protected', 'pub_time', 'text')
 	
 class TwitterUserAdmin(admin.ModelAdmin):
-	list_display = ('screen_name', 'name', 'location', 'numFriends', 'numFollowers')
+	list_display = ('screen_name', 'name', 'protected', 'location')
 	
 	
 admin.site.register(Tweet, TweetAdmin)

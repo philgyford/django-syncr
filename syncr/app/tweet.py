@@ -33,7 +33,11 @@ class TwitterSyncr:
                 access_token_key=access_token_key,
                 access_token_secret=access_token_secret)
 
+        # Caches username: twitter_user_data
         self.user_cache = dict()
+
+        # Caches username: TwitterUser object
+        self.user_obj_cache = dict()
 
     def _getUser(self, user):
         """Retrieve Twitter user information, caching for performance
@@ -55,24 +59,22 @@ class TwitterSyncr:
         Required arguments
           user: a twitter.User object.
         """
-        default_dict = {'screen_name': user.screen_name,
-                        'description': user.description,
-                        'location': user.location,
-                        'name': user.name,
-                        'thumbnail_url': user.profile_image_url,
-                        'url': user.url,
-                        }
-        obj, created = TwitterUser.objects.get_or_create(screen_name = user.screen_name,
-                                                  defaults = default_dict)
-        return obj
-
-    def syncUser(self, user):
-        """Synchronize a Twitter user with the Django backend
-
-        Required arguments
-          user: a Twitter username as a string
-        """
-        user_obj = self._syncTwitterUser(self._getUser(user))
+        if self.user_obj_cache.has_key(user):
+            user_obj = self.user_obj_cache[user]
+        else:
+            try:
+                user_obj = TwitterUser.objects.get(twitter_id = user.id)
+            except TwitterUser.DoesNotExist:
+                user_obj = TwitterUser(twitter_id = user.id)
+            user_obj.screen_name     = user.screen_name
+            user_obj.description     = user.description
+            user_obj.location        = user.location
+            user_obj.name            = user.name
+            user_obj.thumbnail_url   = user.profile_image_url
+            user_obj.url             = user.url
+            user_obj.protected       = user.protected
+            user_obj.save()
+            self.user_obj_cache[user] = user_obj
         return user_obj
 
     def _syncTwitterStatus(self, status):
@@ -85,13 +87,13 @@ class TwitterSyncr:
         Returns:
           A syncr.twitter.models.Tweet Django object.
         """
-        user = self._syncTwitterUser(status.user)
+        user_obj = self._syncTwitterUser(status.user)
         pub_time = time.strptime(status.created_at, "%a %b %d %H:%M:%S +0000 %Y")
         pub_time = datetime.fromtimestamp(time.mktime(pub_time))
         default_dict = {'pub_time': pub_time,
                         'twitter_id': status.id,
                         'text': smart_unicode(status.text),
-                        'user': user,
+                        'user': user_obj,
                         }
 
         if status.coordinates:
@@ -106,6 +108,15 @@ class TwitterSyncr:
         obj, created = Tweet.objects.get_or_create(twitter_id = status.id,
                                                    defaults = default_dict)
         return obj
+
+    def syncUser(self, user):
+        """Synchronize a Twitter user with the Django backend
+
+        Required arguments
+          user: a Twitter username as a string
+        """
+        user_obj = self._syncTwitterUser(self._getUser(user))
+        return user_obj
 
     def syncTweet(self, status_id):
         """Synchronize a Twitter status update by id

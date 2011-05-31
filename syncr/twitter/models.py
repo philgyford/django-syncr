@@ -17,6 +17,12 @@ class Tweet(models.Model):
     def url(self):
         return u'http://twitter.com/%s/statuses/%s' % (self.user.screen_name, self.twitter_id)
 
+    def protected(self):
+        """Is this tweet private?"""
+        return self.user.protected
+    protected.boolean = True
+    protected.short_description = 'Private?'
+
     def local_pub_time(self):
 	'''
 	Convert the Twitter timestamp stored in pub_time to the timezone
@@ -28,11 +34,14 @@ class Tweet(models.Model):
     
 class TwitterUser(models.Model):
     screen_name = models.CharField(max_length=50)
+    twitter_id  = models.PositiveIntegerField(unique=True, null=True)
     description = models.CharField(max_length=250, blank=True, null=True)
     location    = models.CharField(max_length=50, blank=True, null=True)
     name        = models.CharField(max_length=50, blank=True, null=True)
     thumbnail_url = models.URLField()
     url         = models.URLField(blank=True, null=True)
+    protected   = models.BooleanField(blank=False, null=False, default=0,
+                    help_text="Is user private?", verbose_name="Private?")
     friends     = models.ManyToManyField('self', symmetrical=False,
 					 blank=True, null=True,
 					 related_name='friends_user_set')
