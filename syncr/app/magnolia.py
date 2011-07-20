@@ -14,7 +14,7 @@ from syncr.magnolia.models import Link
 import time, datetime, re
 from django.conf import settings
 
-class MagnoliaSyncr:
+class MagnoliaSyncr(object):
 	def syncmag(self):
 		api = pymagnolia.MagnoliaApi(settings.MAGNOLIA_API)
 		bms = api.bookmarks_find(person=settings.MAGNOLIA_USERNAME)

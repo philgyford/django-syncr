@@ -3,7 +3,7 @@ import feedparser
 from datetime import datetime
 import time
 
-class GenericFeedSyncr:
+class GenericFeedSyncr(object):
     """This class uses feedparser to synchronize simple Atom and RSS feeds."""
     def __init__(self, url):
         """Construct a new Generic Feed Syncr object.

@@ -17,7 +17,7 @@ class VideoSyncFailed(Exception):
     pass
 
 
-class YoutubeSyncr:
+class YoutubeSyncr(object):
     """YoutubeSyncr objects synchronize Youtube information with Django
     via the GData API. The Youtube API requires no authentication, so
     the construction method requires no parameters.

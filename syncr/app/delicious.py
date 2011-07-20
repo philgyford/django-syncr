@@ -9,7 +9,7 @@ try:
 except:
     import elementtree.ElementTree as ET
     
-class DeliciousAPI:
+class DeliciousAPI(object):
     """
     DeliciousAPI is a bare-bones interface to the del.icio.us API. It's
     used by DeliciousSyncr objects and it's not recommended to use it
@@ -49,7 +49,7 @@ class DeliciousAPI:
         f = self.opener.open(request)
         return ET.parse(f)
 
-class DeliciousSyncr:
+class DeliciousSyncr(object):
     """
     DeliciousSyncr objects sync del.icio.us bookmarks to the Django
     backend. The constructor requires a username and password for

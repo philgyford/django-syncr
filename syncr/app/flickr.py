@@ -11,7 +11,7 @@ from django.utils.encoding import smart_str
 from syncr.flickr.models import *
 from syncr.flickr.slug import get_unique_slug_for_photo
 
-class FlickrSyncr:
+class FlickrSyncr(object):
     """
     FlickrSyncr objects sync flickr photos, photo sets, and favorites
     lists with the Django backend.

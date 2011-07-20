@@ -28,7 +28,7 @@ GC_PROJECTDOWNLOADS_URL = getattr(settings, 'GC_PROJECTDOWNLOADS_URL', 'http://c
 GC_SVNCHANGES_URL       = getattr(settings, 'GC_SVNCHANGES_URL', 'http://code.google.com/feeds/p/%s/svnchanges/basic')
 
 
-class GoogleCodeSyncr:
+class GoogleCodeSyncr(object):
     """
     GoogleCodeSyncr objects sync Google Code feeds with the Django backend.
 

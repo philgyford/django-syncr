@@ -40,7 +40,7 @@ def syncbooks(pagenum):
             new_book.save()
 
 
-class BookSyncr:
+class BookSyncr(object):
     def readernautsyncr(self):
         """
         First checking to know how many pages exist for a readernaut user. Append each pagenumber as 

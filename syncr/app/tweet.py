@@ -4,7 +4,7 @@ import twitter
 from django.utils.encoding import smart_unicode
 from syncr.twitter.models import TwitterUser, Tweet
 
-class TwitterSyncr:
+class TwitterSyncr(object):
     """TwitterSyncr objects sync Twitter information to the Django
     backend. This includes meta data for Twitter users in addition to
     Twitter status updates (Tweets).

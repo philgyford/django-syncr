@@ -19,7 +19,7 @@ from syncr.picasaweb.models import Photo, Album, FavoriteList
 class PicasawebSyncrError(Exception):
     pass
 
-class PicasawebSyncr:
+class PicasawebSyncr(object):
     """PicasaSyncr objects sync picasaweb photos, photo sets, and favorites
     lists with the Django backend.
 

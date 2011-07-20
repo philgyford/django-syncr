@@ -6,7 +6,7 @@ from xml2dict import XML2Dict
 
 FORMAT_HASH = { 'markdown' : 1, 'html' : 2 }
 
-class TumblrSyncr:
+class TumblrSyncr(object):
     def syncposts(self, url):
         data = urllib.urlopen(url).read()
         x = XML2Dict()
