@@ -355,7 +355,7 @@ class FlickrSyncr(object):
             result = self.flickr.people_getPublicPhotos(user_id=nsid, per_page=per_page, page=page)
             self._syncPhotoXMLList(result.photos[0].photo)
 
-    def syncRecentPhotos(self, username, days=1):
+    def syncRecentPhotos(self, username, days=1, tags=[], tag_mode='any'):
         """
         Synchronize recent public photos from a flickr user.
 
@@ -364,19 +364,25 @@ class FlickrSyncr(object):
         Optional arguments
           days: sync photos since this number of days, defaults
                 to 1 (yesterday)
+          tags: a list of one or more tags to restrict the search to. If empty,
+                ignored. Prepend a '-' to a tag to exclude photos with that tag.
+          tag_mode: Matches 'any' or 'all' supplied tags, if tags are supplied
         """
         syncSince = datetime.now() - timedelta(days=days)
         timestamp = calendar.timegm(syncSince.timetuple())
         nsid = self.user2nsid(username)
+        tags = ','.join(tags)
 
         result = self.flickr.photos_search(user_id=nsid, per_page=500,
-                                           min_upload_date=timestamp)
+                                           min_upload_date=timestamp,
+                                           tags=tags, tag_mode=tag_mode)
         page_count = result.photos[0]['pages']
 
         for page in range(1, int(page_count)+1):
             photo_list = self._syncPhotoXMLList(result.photos[0].photo)
             result = self.flickr.photos_search(user_id=nsid, page=page+1,
-                        per_page=500, min_upload_date=timestamp)
+                        per_page=500, min_upload_date=timestamp,
+                        tags=tags, tag_mode=tag_mode)
 
     def syncPublicFavorites(self, username):
         """Synchronize a flickr user's public favorites.
