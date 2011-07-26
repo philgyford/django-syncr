@@ -135,9 +135,7 @@ are the major changes I've made:
   requests.
 * **Record Twitter users' privacy setting.** Each user now has a 'protected'
   boolean property, as do their tweets.
-* **Add [South](http://south.aeracode.org/) migrations.** For apps which have
-  been worked on.
-
+* **Add [South](http://south.aeracode.org/) migrations.** 
 
 
 More documentation may come at a later date.
