@@ -1,10 +1,30 @@
 from django.db import models
-from tagging.fields import TagField
+from taggit.managers import TaggableManager, TaggableRel
 
 PICASAWEB_ACCESS = (
     ('private', 'Private'),
     ('public', 'Public'),
 )
+
+class PicasaTaggableRel(TaggableRel):
+    """
+    If we use the standard TaggableRel then we get errors because there's a conflict
+    between the Photo class in the Flickr app and here.
+    So we need to specify a related_name, which taggit doesn't let us do normally.
+    """
+    def __init__(self, *args, **kwargs):
+        super(PicasaTaggableRel, self).__init__(*args, **kwargs)
+        self.related_name = "%(app_label)s_%(class)s_related"
+
+class PicasaTaggableManager(TaggableManager):
+    """
+    If we use the standard TaggableManager then we get errors because there's a
+    conflict between the Photo class in the Flickr app and here.
+    So we need to specify a related_name, which taggit doesn't let us do normally.
+    """
+    def __init__(self, *args, **kwargs):
+        super(PicasaTaggableManager, self).__init__(*args, **kwargs)
+        self.rel = PicasaTaggableRel()
 
 ## TODO: licenses here, but how to get them from the api
 
@@ -22,7 +42,6 @@ class Photo(models.Model):
     thumbnail_url = models.URLField()
     content_url = models.URLField()
     #tag_list = models.CharField(max_length=250)
-    tags = TagField()
     enable_comments = models.BooleanField(default=True)
     #license = models.CharField(max_length=50, choices=FLICKR_LICENSES)
     geo_latitude = models.CharField(max_length=50, blank=True)
@@ -40,6 +59,8 @@ class Photo(models.Model):
     exif_focal_length = models.CharField(max_length=50, blank=True)
     #exif_color_space = models.CharField(max_length=50, blank=True)
     updated = models.DateTimeField()
+
+    tags = PicasaTaggableManager(blank=True)
     
     def __unicode__(self):
         return u'%s' % self.title

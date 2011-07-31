@@ -3,12 +3,13 @@ import httplib
 import urllib, urllib2
 import base64
 from syncr.delicious.models import Bookmark
+from taggit.models import Tag
 
 try:
     import xml.etree.ElementTree as ET
 except:
     import elementtree.ElementTree as ET
-    
+
 class DeliciousAPI(object):
     """
     DeliciousAPI is a bare-bones interface to the del.icio.us API. It's
@@ -78,21 +79,19 @@ class DeliciousSyncr(object):
     def clean_tags(self, tags):
         """
         Utility method to clean up del.icio.us tags, removing double
-        quotes, duplicate tags and return a unicode string.
+        quotes, duplicate tags and return a set of tags.
 
         Required arguments
           tags: a tag string
         """
         tags = tags.lower().replace('\"', '').split(' ')
         tags = set(tags)
-        tags = " ".join(tags)
-        return u'%s' % tags
+        return tags
 
     def _syncPost(self, post_elem):
         post_hash = post_elem.attrib['hash']
         time_lst = time.strptime(post_elem.attrib['time'], "%Y-%m-%dT%H:%M:%SZ")
         time_obj = datetime.datetime(*time_lst[0:7])
-        tags = self.clean_tags(post_elem.attrib['tag'])
 
         try:
             extended = post_elem.attrib['extended']
@@ -100,7 +99,6 @@ class DeliciousSyncr(object):
             extended = ''
         default_dict = {
             'description': post_elem.attrib['description'],
-            'tags': tags,
             'url': post_elem.attrib['href'],
             # Is post_hash attrib unique to the post/URL or post/username ?!
             'post_hash': post_hash,
@@ -114,6 +112,14 @@ class DeliciousSyncr(object):
         except KeyError:
             obj, created = Bookmark.objects.get_or_create(
                 post_hash=post_hash, defaults=default_dict)
+            # TODO: Would be good if these synced, rather than only got added 
+            # when the bookmark is created.
+            if created:
+                for tag in self.clean_tags(post_elem.attrib['tag']):
+                    tag_obj, tag_created = Tag.objects.get_or_create(
+                        slug=tag, defaults={'name':tag}
+                    )
+                    obj.tags.add(tag_obj)
             return obj
         return None
 

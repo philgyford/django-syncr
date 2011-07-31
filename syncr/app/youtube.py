@@ -1,6 +1,7 @@
 import urllib
 import datetime, time
 from syncr.youtube.models import YoutubeUser, Video, Playlist, PlaylistVideo
+from taggit.models import Tag
 
 try:
     import xml.etree.ElementTree as ET
@@ -86,8 +87,6 @@ class YoutubeSyncr(object):
 		    '{%s}author/{%s}uri' % (ATOM_NS, ATOM_NS))),
 	    'description': result.findtext(
 		'{%s}group/{%s}description' % (MRSS_NS, MRSS_NS)) or '',
-	    'tag_list': result.findtext(
-		'{%s}group/{%s}keywords' % (MRSS_NS, MRSS_NS)),
 	    'view_count': getattr(result.find('{%s}statistics' % YOUTUBE_NS),
 				  'attrib', {}).get('viewCount', 0),
 	    'url': filter(lambda x: x.attrib['rel'] == 'alternate',
@@ -100,6 +99,15 @@ class YoutubeSyncr(object):
 	    }
         obj, created = Video.objects.get_or_create(feed = video_feed,
                                                    defaults=default_dict)
+        
+        if created:
+            from django.template.defaultfilters import slugify
+            for keyword in result.findtext('{%s}group/{%s}keywords' % (MRSS_NS, MRSS_NS)).split(', '):
+                tag_obj, tag_created = Tag.objects.get_or_create(
+                    slug=slugify(keyword), defaults={'name':keyword}
+                )
+                obj.tags.add(tag_obj)
+
         return obj
 
     def syncUser(self, username):

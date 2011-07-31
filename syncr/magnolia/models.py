@@ -4,7 +4,7 @@ This model remains purely for those who have previously-synced historical data.
 """
 from django.db import models
 from datetime import datetime
-from tagging.fields import TagField
+from taggit.managers import TaggableManager
 import time
 
 RATINGS = (
@@ -26,7 +26,7 @@ class Link(models.Model):
 	screen_url = models.URLField('screenshot url')
 	rating = models.CharField(max_length=1, choices=RATINGS)
 	add_date = models.DateTimeField()
-	tags = TagField()
+	tags = TaggableManager(blank=True)
 		
 	class Meta:
 		ordering = ['-add_date']

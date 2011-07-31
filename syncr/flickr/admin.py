@@ -3,13 +3,18 @@ from django.contrib import admin
 from syncr.flickr.models import Photo, FavoriteList, PhotoSet, PhotoComment
 
 
+class TaggedPhotoInline(admin.TabularInline):
+    model = Photo.tags.through
+
 class PhotoAdmin(admin.ModelAdmin):
     date_hierarchy = 'taken_date'
-    list_display = ('taken_date', 'title', 'upload_date', 'flickr_id', 'owner', 'tags')
+    list_display = ('taken_date', 'title', 'upload_date', 'flickr_id', 'owner')
     list_display_links = ('title', 'flickr_id')
     list_filter = ('upload_date', 'taken_date')
     prepopulated_fields = {'slug': ('title',)}
     search_fields = ['title', 'description']
+    inlines = [TaggedPhotoInline,]
+    exclude = ('tags',)
 
 
 class FavoriteListAdmin(admin.ModelAdmin):

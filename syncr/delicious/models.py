@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from tagging.fields import TagField
+from taggit.managers import TaggableManager
 import hashlib
 
 class Bookmark(models.Model):
@@ -12,10 +12,11 @@ class Bookmark(models.Model):
     # ...so we generate a hash based on the URL and make sure that's unique.
     url_hash = models.CharField(max_length=32, unique=True, verbose_name='URL hash',
             help_text="Hash based on the URL to ensure URLs are unique")
-    tags = TagField()
     extended_info = models.TextField(blank=True)
     post_hash = models.CharField(max_length=100, help_text="Delicious's identifier for this bookmark")
     saved_date = models.DateTimeField()
+
+    tags = TaggableManager(blank=True)
 
     class Meta:
         ordering = ('-saved_date',)

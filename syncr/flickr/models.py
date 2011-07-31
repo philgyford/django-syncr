@@ -4,7 +4,8 @@ from django.utils.text import truncate_words
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 
-from tagging.fields import TagField
+from taggit.managers import TaggableManager, TaggableRel
+from taggit.models import TaggedItemBase
 
 FLICKR_LICENSES = (
     ('0', 'All Rights Reserved'),
@@ -15,6 +16,22 @@ FLICKR_LICENSES = (
     ('5', 'Attribution-ShareAlike License'),
     ('6', 'Attribution-NoDerivs License'),
 )
+
+
+class TaggedPhoto(TaggedItemBase):
+    """
+    Describes the relationship between a django-taggit Tag and a Photo.
+    Flickr has various fields which are unique to this relationship, rather
+    than the Tag itself.
+    """
+    flickr_id = models.CharField(max_length=200, verbose_name='Flickr ID')
+    author_nsid = models.CharField(max_length=50, verbose_name='Author NSID')
+    machine_tag = models.BooleanField(default=False)
+    content_object = models.ForeignKey('Photo', related_name="%(app_label)s_%(class)s_items")
+
+    class Meta:
+        verbose_name = 'Photo/Tag Relationship'
+
 
 class Photo(models.Model):
     flickr_id = models.BigIntegerField(unique=True)
@@ -45,7 +62,6 @@ class Photo(models.Model):
     large_height = models.PositiveSmallIntegerField(null=True) # New
     original_width = models.PositiveSmallIntegerField(null=True) # New
     original_height = models.PositiveSmallIntegerField(null=True) # New
-    tags = TagField(blank=True)
     enable_comments = models.BooleanField(default=True)
     license = models.CharField(max_length=50, choices=FLICKR_LICENSES)
     geo_latitude = models.FloatField(null=True)
@@ -66,6 +82,8 @@ class Photo(models.Model):
     exif_flash = models.CharField(max_length=50, blank=True)
     exif_focal_length = models.CharField(max_length=50, blank=True)
     exif_color_space = models.CharField(max_length=50, blank=True)
+
+    tags = TaggableManager(blank=True, through=TaggedPhoto)
 
     class Meta:
         ordering = ('-taken_date',)

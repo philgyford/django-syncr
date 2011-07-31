@@ -11,6 +11,8 @@ from django.utils.encoding import smart_str
 from syncr.flickr.models import *
 from syncr.flickr.slug import get_unique_slug_for_photo
 
+from taggit.models import Tag
+
 class FlickrSyncr(object):
     """
     FlickrSyncr objects sync flickr photos, photo sets, and favorites
@@ -52,10 +54,35 @@ class FlickrSyncr(object):
         return self.flickr.people_findByUsername(username=username).user[0]['nsid']
 
     def _getXMLNodeTag(self, node):
-        try:
-            return " ".join([x.text for x in node.photo[0].tags[0].tag])
-        except AttributeError:
-            return " "
+        """
+        Return a list of all tags.
+
+        Each tag is represented as dictionary in this format:
+
+            tag = {
+                'name': 'Cooper Taber',
+                'slug': 'coopertaber',
+                'flickr_id': '5827-3536073747-40115981',
+                'author_nsid': '35034346050@N01',
+                'machine_tag': 0
+            }
+        """
+        tags = []
+        if hasattr(node.photo[0].tags[0], 'tag'):
+            for el in node.photo[0].tags[0].tag:
+                machine_tag = False
+                if el['machine_tag'].isdigit() and int(el['machine_tag']) == 1:
+                    machine_tag = True
+                tags.append(
+                    {
+                        'slug': el.text,
+                        'flickr_id': el['id'],
+                        'author_nsid': el['author'],
+                        'name': el['raw'],
+                        'machine_tag': machine_tag
+                    }
+                )
+        return tags
 
     # Removed getPhotoSizeURLs() here
 
@@ -223,16 +250,6 @@ class FlickrSyncr(object):
         proposed_slug = defaultfilters.slugify(photo_xml.photo[0].title[0].text.lower())
         slug = get_unique_slug_for_photo(taken_date, proposed_slug)
 
-        # Ignore tags if there are more chars than 255
-        tags, count = '', 0
-        for tag in [(t, len(t) + 1) for t in self._getXMLNodeTag(photo_xml).split()]:
-            if 255 <= (count + tag[1] - 1):
-                tags = tags[:-1]
-                break
-            if not tag[0].startswith('geo:'): # Exclude ugly geo-tags
-                tags += u'%s ' % tag[0]
-                count += tag[1]
-
         try:
             original_secret = photo_xml.photo[0]['originalsecret']
         except KeyError:
@@ -267,7 +284,6 @@ class FlickrSyncr(object):
             # Removed 'small_url': urls['Small'],sizes
             # Removed 'medium_url': urls['Medium'],
             # Removed 'thumbnail_url': urls['Thumbnail'],
-            'tags': tags,
             'license': photo_xml.photo[0]['license'],
             'geo_latitude': geo_data['latitude'],
             'geo_longitude': geo_data['longitude'],
@@ -292,6 +308,10 @@ class FlickrSyncr(object):
         obj, created = Photo.objects.get_or_create(
             flickr_id = photo_xml.photo[0]['id'], defaults=default_dict)
 
+        if created or obj.update_date < update_date:
+            # This photo is new, or updated, so set the tags.
+            self._syncPhotoTags(obj, photo_xml)
+
         # update if something changed
         if obj.update_date < update_date:
             # Never overwrite URL-relevant attributes
@@ -310,6 +330,55 @@ class FlickrSyncr(object):
                     comment, created = PhotoComment.objects.get_or_create(flickr_id=c['flickr_id'], defaults=c)
 
         return obj
+
+
+    def _syncPhotoTags(self, photo_obj, photo_xml):
+        """
+        Adds/deletes tags for a photo.
+
+        Required Arguments
+          photo_obj: The Photo object we're altering tags for.
+          photos_xml: A list of photos in Flickrapi's REST XMLNode format.
+        """
+
+        # The existing tag-photo relationships.
+        taggedphotos = Photo.tags.through.objects.filter(content_object=photo_obj)
+
+        # The new tags fetched from Flickr.
+        remote_tags = self._getXMLNodeTag(photo_xml)
+
+        local_flickr_ids = set([])
+        remote_flickr_ids = set([])
+
+        # Get the Flickr IDs of all the current tag-photo relationships.
+        for taggedphoto in taggedphotos:
+            local_flickr_ids.add(taggedphoto.flickr_id)
+
+        for tag in remote_tags:
+            remote_flickr_ids.add(tag['flickr_id'])
+            if tag['flickr_id'] not in local_flickr_ids:
+                # This tag isn't currently on the photo, so add it.
+                tag_obj, tag_created = Tag.objects.get_or_create(
+                    slug=tag['slug'], defaults={'name':tag['name']}
+                )
+                pt_obj = Photo.tags.through(
+                        flickr_id = tag['flickr_id'],
+                        author_nsid = tag['author_nsid'],
+                        machine_tag = tag['machine_tag'],
+                        content_object = photo_obj,
+                        tag = tag_obj
+                )
+                pt_obj.save()
+
+        flickr_ids_to_delete = local_flickr_ids.difference(remote_flickr_ids)
+
+        # Finally, delete any tag-photo relationships which were identified
+        # above as no longer on the photo on Flickr.
+        for taggedphoto in taggedphotos:
+            if taggedphoto.flickr_id in flickr_ids_to_delete:
+                taggedphoto.delete()
+
+
 
     def _syncPhotoXMLList(self, photos_xml):
         """
