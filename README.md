@@ -1,8 +1,10 @@
 # django-syncr
 
+(Current dev branch, MAJOR CHANGE: Switched from using django-tagger to [django-taggit](https://github.com/alex/django-taggit/).)
+
 **A collection of Django applications for saving your activity on other websites (such as Flickr, Twitter, YouTube, etc) in your local database.** 
 
-This project was begun by Jesse Legg [at Google Code](http://code.google.com/p/django-syncr/), which seemed to stop in 2008. Dan Fairs [did some updates](https://github.com/danfairs/django-syncr) until 2010. Phil Gyford [is currently working on this fork](https://github.com/philgyford/django-syncr). See "Changes from earlier versions" below for what's new.
+This project was begun by Jesse Legg [at Google Code](http://code.google.com/p/django-syncr/), which seemed to stop in 2008. Dan Fairs [did some updates](https://github.com/danfairs/django-syncr) until 2010. Phil Gyford [is currently working on this fork](https://github.com/philgyford/django-syncr). See "Changes from earlier versions" below for what's new. Other than this README, docs have not been updated for a while.
 
 See [the Issues](https://github.com/philgyford/django-syncr/issues) for known new issues, or the [Google Code issues](http://code.google.com/p/django-syncr/issues/list) for older ones, possibly still extant.
 
@@ -19,7 +21,7 @@ django-syncr provides no views or templates for viewing your locally-stored data
 
 [South](http://south.aeracode.org/) migrations are available for all apps.
 
-[Phil Gyford](http://www.gyford.com/), 26 July 2011.
+[Phil Gyford](http://www.gyford.com/), 31 July 2011.
 
 
 ## Services
@@ -40,16 +42,16 @@ Can fetch a user's Tweets, lists of Friends and Followers, and Friends' Tweets. 
 
 **Roughly tested, appears to work.**
 
-Requires: [flickrapi](http://stuvel.eu/flickrapi), [django-tagging](http://code.google.com/p/django-tagging/).
+Requires: [flickrapi](http://stuvel.eu/flickrapi), [django-taggit](https://github.com/alex/django-taggit/).
 
-Can fetch a user's public photos, recent photos, public favorites, photo sets.  The Photo model stores most/all data, including geo and EXIF data. Comments on photos are also stored. The images themselves are not stored locally.
+Can fetch a user's public photos, recent photos, public favorites, photo sets.  The Photo model stores most/all data, including geo and EXIF data, and data about tags. Comments on photos are also stored. The images themselves are not stored locally.
 
 
 ### [Delicious](http://www.delicious.com/)
 
 **Roughly tested, appears to work.**
 
-Requires: [django-tagging](http://code.google.com/p/django-tagging/).
+Requires: [django-taggit](https://github.com/alex/django-taggit/).
 
 Fetches a user's bookmarks. All, most recent, a specific tag, or a specific date.
 
@@ -58,12 +60,22 @@ Fetches a user's bookmarks. All, most recent, a specific tag, or a specific date
 
 **Roughly tested, appears to work.**
 
-Requires: [django-tagging](http://code.google.com/p/django-tagging/).
+Requires: [django-taggit](https://github.com/alex/django-taggit/)
 
 Fetches a user's playlists, favorites and uploads. Stores data about videos such as view counts, length, descriptions, tags, etc. The videos themselves are not stored locally.
 
 
-### Google Code, Picasa, Readernaut, Tumblr
+### [Picasa](https://picasaweb.google.com/)
+
+**Roughly tested, appears to work.**
+
+Requires: [gdata](http://code.google.com/p/gdata-python-client/), [django-taggit](https://github.com/alex/django-taggit/).
+
+Fetches data about photos from all of a user's Albums, or a specific Album.
+
+
+
+### Google Code, Readernaut, Tumblr
 
 **Not yet checked.**
 
@@ -124,6 +136,10 @@ Based on the [original docs at Google Code](http://code.google.com/p/django-sync
 If you're using a version of django-syncr last updated prior to May 2011, here
 are the major changes I've made:
 
+* **Uses django-taggit instead of django-tagger** This is a major change if
+  you're using any of the apps that use tagging. Database structure is slightly
+  different and although there are South migrations you may need to do [some
+  manual work](http://birdhouse.org/blog/2011/04/17/migrate-django-tagging-taggit/). 
 * **Made Twitter work with OAuth.** It now requires you to register a new Twitter
   app and provide the app's consumer key, consumer secret, access token and
   access token secret.
