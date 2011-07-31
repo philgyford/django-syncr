@@ -71,17 +71,17 @@ class Photo(models.Model):
     geo_county = models.CharField(max_length=200, blank=True) # New
     geo_region = models.CharField(max_length=200, blank=True) # New
     geo_country = models.CharField(max_length=200, blank=True) # New
-    exif_make  = models.CharField(max_length=50, blank=True)
-    exif_model = models.CharField(max_length=50, blank=True)
-    exif_orientation = models.CharField(max_length=50, blank=True)
-    exif_exposure = models.CharField(max_length=50, blank=True)
-    exif_software = models.CharField(max_length=50, blank=True)
-    exif_aperture = models.CharField(max_length=50, blank=True)
-    exif_iso = models.CharField(max_length=50, blank=True)
-    exif_metering_mode = models.CharField(max_length=50, blank=True)
-    exif_flash = models.CharField(max_length=50, blank=True)
-    exif_focal_length = models.CharField(max_length=50, blank=True)
-    exif_color_space = models.CharField(max_length=50, blank=True)
+    exif_make  = models.CharField(max_length=200, blank=True)
+    exif_model = models.CharField(max_length=200, blank=True)
+    exif_orientation = models.CharField(max_length=200, blank=True)
+    exif_exposure = models.CharField(max_length=200, blank=True)
+    exif_software = models.CharField(max_length=200, blank=True)
+    exif_aperture = models.CharField(max_length=200, blank=True)
+    exif_iso = models.CharField(max_length=200, blank=True)
+    exif_metering_mode = models.CharField(max_length=200, blank=True)
+    exif_flash = models.CharField(max_length=200, blank=True)
+    exif_focal_length = models.CharField(max_length=200, blank=True)
+    exif_color_space = models.CharField(max_length=200, blank=True)
 
     tags = TaggableManager(blank=True, through=TaggedPhoto)
 
