@@ -2,6 +2,7 @@ import calendar
 from datetime import datetime, timedelta
 import flickrapi
 import math
+import re
 from time import strptime
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -243,7 +244,17 @@ class FlickrSyncr(object):
         exif_data = self.getExifInfo(photo_id)
         geo_data = self.getGeoLocation(photo_id)
 
-        taken_date = datetime(*strptime(photo_xml.photo[0].dates[0]['taken'], "%Y-%m-%d %H:%M:%S")[:7])
+        taken_granularity = photo_xml.photo[0].dates[0]['takengranularity']
+        taken = photo_xml.photo[0].dates[0]['taken']
+        if taken_granularity == '8':
+            # When granularity is 'Circa...' then the month comes back as '00'
+            # which makes for an invalid datetime, so we fix it.
+            # eg, make '1956-00-01 00:00:00'
+            #     into '1956-01-01 00:00:00'
+            taken = re.sub(r'^(?P<year>\d{,4}-)00(?P<remainder>.*?)$',
+                           r'\g<year>01\g<remainder>', taken)
+
+        taken_date = datetime(*strptime(taken, "%Y-%m-%d %H:%M:%S")[:7])
         upload_date = datetime.fromtimestamp(int(photo_xml.photo[0].dates[0]['posted']))
         update_date = datetime.fromtimestamp(int(photo_xml.photo[0].dates[0]['lastupdate']))
 
@@ -263,6 +274,7 @@ class FlickrSyncr(object):
             'slug': slug,
             'description': photo_xml.photo[0].description[0].text,
             'taken_date': taken_date,
+            'taken_granularity': taken_granularity,
             'upload_date': upload_date,
             'update_date': update_date,
             'photopage_url': photo_xml.photo[0].urls[0].url[0].text,

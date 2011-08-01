@@ -17,6 +17,12 @@ FLICKR_LICENSES = (
     ('6', 'Attribution-NoDerivs License'),
 )
 
+FLICKR_DATE_GRANULARITIES = (
+    (0, 'Y-m-d H:i:s'),
+    (4, 'Y-m'),
+    (6, 'Y'),
+    (8, 'Circa...'),
+)
 
 class TaggedPhoto(TaggedItemBase):
     """
@@ -40,6 +46,9 @@ class Photo(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique_for_date='taken_date', help_text='Automatically built from the title.')
     description = models.TextField(blank=True)
+    # Granularity: http://www.flickr.com/services/api/misc.dates.html
+    taken_granularity = models.PositiveSmallIntegerField(default=0,
+                                    choices=FLICKR_DATE_GRANULARITIES)
     taken_date = models.DateTimeField()
     upload_date = models.DateTimeField() # New
     update_date = models.DateTimeField() # New (very)
