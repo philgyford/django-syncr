@@ -42,7 +42,7 @@ class TwitterSyncr(object):
     def _getUser(self, user):
         """Retrieve Twitter user information, caching for performance
         purposes.
-        
+
         Required arguments
           user: a Twitter username as a string.
         """
@@ -77,12 +77,15 @@ class TwitterSyncr(object):
             self.user_obj_cache[user] = user_obj
         return user_obj
 
-    def _syncTwitterStatus(self, status):
+    def _syncTwitterStatus(self, status, follow_conversations=False):
         """
         Take a twitter.Status object and synchronize it to Django.
 
         Args:
           status: a twitter.Status object.
+
+        Optional arguments
+          follow_conversations: Boolean, do we fetch tweets this is in-reply-to?
 
         Returns:
           A syncr.twitter.models.Tweet Django object.
@@ -100,8 +103,9 @@ class TwitterSyncr(object):
             default_dict['coordinates_latitude'] = status.coordinates['coordinates'][1]
             default_dict['coordinates_longitude'] = status.coordinates['coordinates'][0]
 
-        if status.in_reply_to_status_id:
-            reply_tweet = self.syncTweet(status.in_reply_to_status_id)
+        if follow_conversations and status.in_reply_to_status_id:
+            reply_tweet = self.syncTweet(status.in_reply_to_status_id,
+                            follow_conversations=follow_conversations)
             default_dict['in_reply_to_tweet'] = reply_tweet
             default_dict['in_reply_to_user'] = reply_tweet.user
 
@@ -118,7 +122,7 @@ class TwitterSyncr(object):
         user_obj = self._syncTwitterUser(self._getUser(user))
         return user_obj
 
-    def syncTweet(self, status_id):
+    def syncTweet(self, status_id, follow_conversations=False):
         """Synchronize a Twitter status update by id
 
         If the tweet is in reply to another, that (and its user) will be fetched,
@@ -126,20 +130,28 @@ class TwitterSyncr(object):
 
         Required arguments
           status_id: a Twitter status update id
+
+        Optional arguments
+          follow_conversations: Boolean, do we fetch tweets this is in-reply-to?
         """
         status_obj = self.api.GetStatus(status_id)
-        return self._syncTwitterStatus(status_obj)
+        return self._syncTwitterStatus(status_obj,
+                follow_conversations=follow_conversations)
 
-    def syncTwitterUserTweets(self, user):
+    def syncTwitterUserTweets(self, user, follow_conversations=False):
         """Synchronize a Twitter user's tweets with Django (currently
         only the last 20 updates)
 
         Required arguments
           user: the Twitter user as string
+
+        Optional arguments
+          follow_conversations: Boolean, do we fetch tweets these are in-reply-to?
         """
         statuses = self.api.GetUserTimeline(user)
         for status in statuses:
-            self._syncTwitterStatus(status)
+            self._syncTwitterStatus(status,
+                    follow_conversations=follow_conversations)
 
     def syncFriends(self, user):
         """Synchronize a Twitter user's friends with Django.
@@ -166,19 +178,23 @@ class TwitterSyncr(object):
             obj = self._syncTwitterUser(follower)
             user_obj.followers.add(obj)
 
-    def syncFriendsTweets(self):
+    def syncFriendsTweets(self, follow_conversations=False):
         """Synchronize the tweets of the authenticated Twitter user's friends 
         (currently only the last 20 updates). Also automatically add these users
         as friends in the Django database, if they aren't already.
 
         NOTE: Only works on the currently authenticated user.
+
+        Optional arguments
+          follow_conversations: Boolean, do we fetch tweets these are in-reply-to?
         """
         friend_updates = self.api.GetFriendsTimeline()
         user_obj = self._syncTwitterUser(self._getUser(self.username))
-        
+
         # loop through twitter.Status objects and sync them
         for update in friend_updates:
-            self._syncTwitterStatus(update)
+            self._syncTwitterStatus(update,
+                        follow_conversations=follow_conversations)
             friend = self._syncTwitterUser(update.user)
             user_obj.friends.add(friend)
 
