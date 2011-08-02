@@ -36,7 +36,7 @@ class TwitterSyncr(object):
         # Caches username: twitter_user_data
         self.user_cache = dict()
 
-        # Caches username: TwitterUser object
+        # Caches twitter_id: TwitterUser object
         self.user_obj_cache = dict()
 
     def _getUser(self, user):
@@ -59,8 +59,8 @@ class TwitterSyncr(object):
         Required arguments
           user: a twitter.User object.
         """
-        if self.user_obj_cache.has_key(user):
-            user_obj = self.user_obj_cache[user]
+        if self.user_obj_cache.has_key(user.id):
+            user_obj = self.user_obj_cache[user.id]
         else:
             try:
                 user_obj = TwitterUser.objects.get(twitter_id = user.id)
@@ -74,7 +74,7 @@ class TwitterSyncr(object):
             user_obj.url             = user.url
             user_obj.protected       = user.protected
             user_obj.save()
-            self.user_obj_cache[user] = user_obj
+            self.user_obj_cache[user.id] = user_obj
         return user_obj
 
     def _syncTwitterStatus(self, status, follow_conversations=False):
@@ -138,20 +138,38 @@ class TwitterSyncr(object):
         return self._syncTwitterStatus(status_obj,
                 follow_conversations=follow_conversations)
 
-    def syncTwitterUserTweets(self, user, follow_conversations=False):
+    def syncTwitterUserTweets(self, user, count=20, follow_conversations=False):
         """Synchronize a Twitter user's tweets with Django (currently
         only the last 20 updates)
 
         Required arguments
-          user: the Twitter user as string
+          user: the Twitter user as string, eg 'philgyford'
 
         Optional arguments
+          count: The number of tweets to fetch (3200 is the maximum fetchable).
           follow_conversations: Boolean, do we fetch tweets these are in-reply-to?
         """
-        statuses = self.api.GetUserTimeline(user)
-        for status in statuses:
-            self._syncTwitterStatus(status,
-                    follow_conversations=follow_conversations)
+        max_per_page = 200 # Twitter's maximum number.
+        if count < max_per_page:
+            fetch_per_page = count
+        else:
+            fetch_per_page = max_per_page
+        num_remaining = count
+        page = 1
+        while num_remaining > 0:
+            statuses = self.api.GetUserTimeline(screen_name=user, include_rts=True,
+                                                count=fetch_per_page, page=page)
+            if len(statuses):
+                for status in statuses:
+                    self._syncTwitterStatus(status,
+                            follow_conversations=follow_conversations)
+
+                num_remaining = count - (page * max_per_page)
+                page += 1
+                time.sleep(2)
+            else:
+                break
+
 
     def syncFriends(self, user):
         """Synchronize a Twitter user's friends with Django.
@@ -178,7 +196,7 @@ class TwitterSyncr(object):
             obj = self._syncTwitterUser(follower)
             user_obj.followers.add(obj)
 
-    def syncFriendsTweets(self, follow_conversations=False):
+    def syncFriendsTweets(self, count=20, follow_conversations=False):
         """Synchronize the tweets of the authenticated Twitter user's friends 
         (currently only the last 20 updates). Also automatically add these users
         as friends in the Django database, if they aren't already.
@@ -186,15 +204,32 @@ class TwitterSyncr(object):
         NOTE: Only works on the currently authenticated user.
 
         Optional arguments
+          count: The number of tweets to fetch
           follow_conversations: Boolean, do we fetch tweets these are in-reply-to?
         """
-        friend_updates = self.api.GetFriendsTimeline()
         user_obj = self._syncTwitterUser(self._getUser(self.username))
 
-        # loop through twitter.Status objects and sync them
-        for update in friend_updates:
-            self._syncTwitterStatus(update,
-                        follow_conversations=follow_conversations)
-            friend = self._syncTwitterUser(update.user)
-            user_obj.friends.add(friend)
+        # If python.twitter changes to use home_timeline instead of 
+        # friends_timeline, I expect this will change to 200.
+        max_per_page = 100 # python.twitter's maximum
+        if count < max_per_page:
+            fetch_per_page = count
+        else:
+            fetch_per_page = max_per_page
+        num_remaining = count
+        page = 1
+        while num_remaining > 0:
+            statuses = self.api.GetFriendsTimeline(retweets=True,
+                                                count=fetch_per_page, page=page)
+            if len(statuses):
+                for status in statuses:
+                    self._syncTwitterStatus(status,
+                                follow_conversations=follow_conversations)
+                    friend = self._syncTwitterUser(status.user)
+                    user_obj.friends.add(friend)
+                num_remaining = count - (page * max_per_page)
+                page += 1
+                time.sleep(2)
+            else:
+                break
 
