@@ -24,14 +24,14 @@ class Tweet(models.Model):
     protected.short_description = 'Private?'
 
     def local_pub_time(self):
-	'''
-	Convert the Twitter timestamp stored in pub_time to the timezone
-	specified in DJANGO_SETTINGS_MODULE. Requires pytz.
-	'''
-	import pytz
-	zone = pytz.timezone(settings.TIME_ZONE)
-	return self.pub_time.replace(tzinfo=pytz.utc).astimezone(zone)
-    
+        '''
+        Convert the Twitter timestamp stored in pub_time to the timezone
+        specified in DJANGO_SETTINGS_MODULE. Requires pytz.
+        '''
+        import pytz
+        zone = pytz.timezone(settings.TIME_ZONE)
+        return self.pub_time.replace(tzinfo=pytz.utc).astimezone(zone)
+
 class TwitterUser(models.Model):
     screen_name = models.CharField(max_length=50)
     twitter_id  = models.PositiveIntegerField(unique=True, null=True)
@@ -43,11 +43,11 @@ class TwitterUser(models.Model):
     protected   = models.BooleanField(blank=False, null=False, default=0,
                     help_text="Is user private?", verbose_name="Private?")
     friends     = models.ManyToManyField('self', symmetrical=False,
-					 blank=True, null=True,
-					 related_name='friends_user_set')
+                    blank=True, null=True,
+                    related_name='friends_user_set')
     followers   = models.ManyToManyField('self', symmetrical=False,
-					 blank=True, null=True,
-					 related_name='followers_user_set')
+                    blank=True, null=True,
+                    related_name='followers_user_set')
 
     def numFriends(self):
         return self.friends.count()
