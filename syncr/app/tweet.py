@@ -5,7 +5,8 @@ from django.utils.encoding import smart_unicode
 from syncr.twitter.models import TwitterUser, Tweet
 
 class TwitterSyncr(object):
-    """TwitterSyncr objects sync Twitter information to the Django
+    """
+    TwitterSyncr objects sync Twitter information to the Django
     backend. This includes meta data for Twitter users in addition to
     Twitter status updates (Tweets).
 
@@ -13,11 +14,16 @@ class TwitterSyncr(object):
     access to only the most recent data in the Twitter system. This
     is for performance reasons (per API docs).
 
+    Set the follow_conversations attribute to True before calling methods if you
+    want to follow in-reply-to IDs and fetch conversations that synced tweets are
+    involved in (more queries).
+
     This app depends on python-twitter:
     http://code.google.com/p/python-twitter/
     """
     def __init__(self, username, consumer_key, consumer_secret, access_token_key, access_token_secret):
-        """Construct a new TwitterSyncr object.
+        """
+        Construct a new TwitterSyncr object.
 
         Required arguments
           username: the Twitter username associated with the OAuth credentials
@@ -33,11 +39,18 @@ class TwitterSyncr(object):
                 access_token_key=access_token_key,
                 access_token_secret=access_token_secret)
 
+        # When fetching each tweet, do we want to fetch the tweet that it is
+        # in-reply-to? And the same with that one in turn, etc?
+        # Can make for a lot more requests, but we end up with complete
+        # conversations.
+        self.follow_conversations = False
+
         # Caches username: twitter_user_data
         self.user_cache = dict()
 
         # Caches twitter_id: TwitterUser object
         self.user_obj_cache = dict()
+
 
     def _getUser(self, user):
         """Retrieve Twitter user information, caching for performance
@@ -52,6 +65,7 @@ class TwitterSyncr(object):
             tw_user = self.api.GetUser(user)
             self.user_cache[user] = tw_user
             return self.user_cache[user]
+
 
     def _syncTwitterUser(self, user):
         """Synchronize a twitter.User object with the Django backend
@@ -78,15 +92,12 @@ class TwitterSyncr(object):
         return user_obj
 
 
-    def _syncTwitterStatus(self, status, follow_conversations=False):
+    def _syncTwitterStatus(self, status):
         """
         Take a twitter.Status object and synchronize it to Django.
 
         Args:
           status: a twitter.Status object.
-
-        Optional arguments
-          follow_conversations: Boolean, do we fetch tweets this is in-reply-to?
 
         Returns:
           A syncr.twitter.models.Tweet Django object.
@@ -104,9 +115,8 @@ class TwitterSyncr(object):
             default_dict['coordinates_latitude'] = status.coordinates['coordinates'][1]
             default_dict['coordinates_longitude'] = status.coordinates['coordinates'][0]
 
-        if follow_conversations and status.in_reply_to_status_id:
-            reply_tweet = self.syncTweet(status.in_reply_to_status_id,
-                            follow_conversations=follow_conversations)
+        if self.follow_conversations and status.in_reply_to_status_id:
+            reply_tweet = self.syncTweet(status.in_reply_to_status_id)
             default_dict['in_reply_to_tweet'] = reply_tweet
             default_dict['in_reply_to_user'] = reply_tweet.user
 
@@ -125,7 +135,7 @@ class TwitterSyncr(object):
         return user_obj
 
 
-    def syncTweet(self, status_id, follow_conversations=False):
+    def syncTweet(self, status_id):
         """Synchronize a Twitter status update by id
 
         If the tweet is in reply to another, that (and its user) will be fetched,
@@ -133,16 +143,13 @@ class TwitterSyncr(object):
 
         Required arguments
           status_id: a Twitter status update id
-
-        Optional arguments
-          follow_conversations: Boolean, do we fetch tweets this is in-reply-to?
         """
         status_obj = self.api.GetStatus(status_id)
         return self._syncTwitterStatus(status_obj,
-                follow_conversations=follow_conversations)
+                )
 
 
-    def syncTwitterUserTweets(self, user, count=20, since_id=None, follow_conversations=False):
+    def syncTwitterUserTweets(self, user, count=20, since_id=None):
         """
         Synchronize a Twitter user's tweets with Django.
 
@@ -156,7 +163,6 @@ class TwitterSyncr(object):
         Optional arguments
           count: The number of tweets to fetch (3200 is the maximum fetchable).
           since_id: Returns tweets that have IDs greater than this. If set, we will
-          follow_conversations: Boolean, do we fetch tweets these are in-reply-to?
         """
         max_per_page = 200 # Twitter's maximum number.
         if count < max_per_page:
@@ -171,8 +177,7 @@ class TwitterSyncr(object):
                                 count=fetch_per_page, since_id=since_id, page=page)
             if len(statuses):
                 for status in statuses:
-                    self._syncTwitterStatus(status,
-                            follow_conversations=follow_conversations)
+                    self._syncTwitterStatus(status)
                     if status.id > max_tweet_id:
                         max_tweet_id = status.id
                 num_remaining = count - (page * max_per_page)
@@ -192,7 +197,7 @@ class TwitterSyncr(object):
             tu.save()
 
 
-    def syncTwitterUserNewTweets(self, user, count=20, follow_conversations=False):
+    def syncTwitterUserNewTweets(self, user, count=20):
         """
         Use this if you want to do the same as syncTwitterUserTweets() but
         automatically only fetch the tweets by the user since last time we called
@@ -203,7 +208,6 @@ class TwitterSyncr(object):
 
         Optional arguments
           count: The number of tweets to fetch (3200 is the maximum fetchable).
-          follow_conversations: Boolean, do we fetch tweets these are in-reply-to?
         """
         try:
             tu = TwitterUser.objects.get(screen_name=user)
@@ -212,7 +216,7 @@ class TwitterSyncr(object):
             since_id = None
 
         return self.syncTwitterUserTweets(user, count=count,
-                since_id=since_id, follow_conversations=follow_conversations)
+                                                        since_id=since_id)
 
 
     def syncFriends(self, user):
@@ -242,7 +246,7 @@ class TwitterSyncr(object):
             user_obj.followers.add(obj)
 
 
-    def syncFriendsTweets(self, count=20, since_id=None, follow_conversations=False):
+    def syncFriendsTweets(self, count=20, since_id=None):
         """
         Synchronize the tweets of the authenticated Twitter user's friends.
 
@@ -254,7 +258,6 @@ class TwitterSyncr(object):
         Optional arguments
           count: The number of tweets to fetch
           since_id: Returns tweets that have IDs greater than this.
-          follow_conversations: Boolean, do we fetch tweets these are in-reply-to?
         """
         user_obj = self._syncTwitterUser(self._getUser(self.username))
 
@@ -272,8 +275,7 @@ class TwitterSyncr(object):
                                 count=fetch_per_page, since_id=since_id, page=page)
             if len(statuses):
                 for status in statuses:
-                    self._syncTwitterStatus(status,
-                                follow_conversations=follow_conversations)
+                    self._syncTwitterStatus(status)
                     friend = self._syncTwitterUser(status.user)
                     user_obj.friends.add(friend)
                 num_remaining = count - (page * max_per_page)
