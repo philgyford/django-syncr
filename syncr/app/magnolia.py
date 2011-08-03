@@ -10,12 +10,17 @@ MagnoliaSyncr objects syncr magnolia links with Django backend
     magnolia-syncr documentation for more."""
 
 import pymagnolia
+from syncr.app.service import ServiceSyncr
 from syncr.magnolia.models import Link
 import time, datetime, re
 from django.conf import settings
 from taggit.models import Tag
 
-class MagnoliaSyncr(object):
+class MagnoliaSyncr(ServiceSyncr):
+
+    def __init__(self, *args, **kwargs):
+        super(MagnoliaSyncr, self).__init__(*args, **kwargs)
+
 	def syncmag(self):
 		api = pymagnolia.MagnoliaApi(settings.MAGNOLIA_API)
 		bms = api.bookmarks_find(person=settings.MAGNOLIA_USERNAME)

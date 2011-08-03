@@ -3,7 +3,7 @@ import time, datetime
 import urllib, dateutil.parser, dateutil.tz, feedparser
 from xml2dict import XML2Dict
 from django.conf import settings
- 
+from syncr.app.service import ServiceSyncr
 
 def syncbooks(pagenum):
     """
@@ -40,7 +40,11 @@ def syncbooks(pagenum):
             new_book.save()
 
 
-class BookSyncr(object):
+class BookSyncr(ServiceSyncr):
+
+    def __init__(self, *args, **kwargs):
+        super(BookSyncr, self).__init__(*args, **kwargs)
+
     def readernautsyncr(self):
         """
         First checking to know how many pages exist for a readernaut user. Append each pagenumber as 

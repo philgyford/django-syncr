@@ -3,8 +3,9 @@ from datetime import datetime
 import twitter
 from django.utils.encoding import smart_unicode
 from syncr.twitter.models import TwitterUser, Tweet
+from syncr.app.service import ServiceSyncr
 
-class TwitterSyncr(object):
+class TwitterSyncr(ServiceSyncr):
     """
     TwitterSyncr objects sync Twitter information to the Django
     backend. This includes meta data for Twitter users in addition to
@@ -21,7 +22,7 @@ class TwitterSyncr(object):
     This app depends on python-twitter:
     http://code.google.com/p/python-twitter/
     """
-    def __init__(self, username, consumer_key, consumer_secret, access_token_key, access_token_secret):
+    def __init__(self, username, consumer_key, consumer_secret, access_token_key, access_token_secret, *args, **kwargs):
         """
         Construct a new TwitterSyncr object.
 
@@ -32,6 +33,7 @@ class TwitterSyncr(object):
           access_token_key: the Twitter app access token key for authentication
           access_token_secret: the Twitter app access token secret for authentication
         """
+        super(TwitterSyncr, self).__init__(*args, **kwargs)
         self.username = username
         self.api = twitter.Api(
                 consumer_key=consumer_key,

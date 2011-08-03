@@ -6,6 +6,7 @@
 
 import time, re
 from datetime import datetime
+from syncr.app.service import ServiceSyncr
 from syncr.googlecode.models import GoogleCodeSvnChange, GoogleCodeProjectDownload
 from django.conf import settings
 
@@ -28,18 +29,19 @@ GC_PROJECTDOWNLOADS_URL = getattr(settings, 'GC_PROJECTDOWNLOADS_URL', 'http://c
 GC_SVNCHANGES_URL       = getattr(settings, 'GC_SVNCHANGES_URL', 'http://code.google.com/feeds/p/%s/svnchanges/basic')
 
 
-class GoogleCodeSyncr(object):
+class GoogleCodeSyncr(ServiceSyncr):
     """
     GoogleCodeSyncr objects sync Google Code feeds with the Django backend.
 
     As now only Downloads list and SVN commits log can be sync
     """
+    def __init__(self, *args, **kwargs):
+        super(GoogleCodeSyncr, self).__init__(*args, **kwargs)
 
     def syncProjectDownloads(self):
         """
         Synchronize Downloads list from a Google Code project with the Django backend
         """
-        
         for proj in GC_PROJECTDOWNLOADS:
             self.feed = feedparser.parse(GC_PROJECTDOWNLOADS_URL % proj)
 

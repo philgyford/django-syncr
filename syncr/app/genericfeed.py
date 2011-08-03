@@ -1,16 +1,18 @@
 from syncr.genericfeed.models import Feed, Entry
 import feedparser
 from datetime import datetime
+from syncr.app.service import ServiceSyncr
 import time
 
-class GenericFeedSyncr(object):
+class GenericFeedSyncr(ServiceSyncr):
     """This class uses feedparser to synchronize simple Atom and RSS feeds."""
-    def __init__(self, url):
+    def __init__(self, url, *args, **kwargs):
         """Construct a new Generic Feed Syncr object.
         
         Required arguments
             url: The url of the RSS or Atom feed to synchronize
         """
+        super(GenericFeedSyncr, self).__init__(*args, **kwargs)
         self.url = url
     
     def sync_feed(self):

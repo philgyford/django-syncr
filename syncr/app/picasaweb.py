@@ -14,6 +14,7 @@ import gdata.photos.service
 import gdata.media
 import gdata.geo
 from django.core.exceptions import ObjectDoesNotExist
+from syncr.app.service import ServiceSyncr
 from syncr.picasaweb.models import Photo, Album, FavoriteList
 from taggit.models import Tag
 
@@ -31,21 +32,22 @@ class PicasawebSyncr(object):
     This app requires google gdata library. Available at:
     http://code.google.com/p/gdata-python-client/downloads/list
     """
-    def __init__(self, email, password, cli_verbose=False):
+    def __init__(self, email, password, cli_verbose=False, *args, **kwargs):
         """Construct a new PicasawebSyncr object.
 
         Required arguments
           email: a google email (username)
           password: account password
         """
-	self.cli_verbose = cli_verbose
-	self.email = email
-	gd_client = gdata.photos.service.PhotosService()
-	gd_client.email = email
-	gd_client.password = password
-	gd_client.source = 'django-syncr-picasaweb'
-	gd_client.ProgrammaticLogin()
-	self.gd_client = gd_client
+        super(PicasawebSyncr, self).__init__(*args, **kwargs)
+        self.cli_verbose = cli_verbose
+        self.email = email
+        gd_client = gdata.photos.service.PhotosService()
+        gd_client.email = email
+        gd_client.password = password
+        gd_client.source = 'django-syncr-picasaweb'
+        gd_client.ProgrammaticLogin()
+        self.gd_client = gd_client
 
     def getExifKey(self, exif_data, key):
         try:

@@ -1,6 +1,7 @@
 import urllib
 import datetime, time
 from syncr.youtube.models import YoutubeUser, Video, Playlist, PlaylistVideo
+from syncr.app.service import ServiceSyncr
 from taggit.models import Tag
 
 try:
@@ -18,7 +19,7 @@ class VideoSyncFailed(Exception):
     pass
 
 
-class YoutubeSyncr(object):
+class YoutubeSyncr(ServiceSyncr):
     """YoutubeSyncr objects synchronize Youtube information with Django
     via the GData API. The Youtube API requires no authentication, so
     the construction method requires no parameters.
@@ -40,7 +41,10 @@ class YoutubeSyncr(object):
     """
     _youtubeGDataHost = 'gdata.youtube.com'
     _youtubeFeedBase  = '/feeds/api/'
-    
+
+    def __init__(self, *args, **kwargs):
+        super(YoutubeSyncr, self).__init__(*args, **kwargs)
+
     def _request(self, url):
         f = urllib.urlopen(url)
         tree = ET.parse(f)

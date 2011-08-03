@@ -9,12 +9,13 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.template import defaultfilters
 from django.utils.encoding import smart_str
 
+from syncr.app.service import ServiceSyncr
 from syncr.flickr.models import *
 from syncr.flickr.slug import get_unique_slug_for_photo
 
 from taggit.models import Tag
 
-class FlickrSyncr(object):
+class FlickrSyncr(ServiceSyncr):
     """
     FlickrSyncr objects sync flickr photos, photo sets, and favorites
     lists with the Django backend.
@@ -33,7 +34,7 @@ class FlickrSyncr(object):
         'geo': True,
     }
 
-    def __init__(self, flickr_key, flickr_secret, sync_content=None):
+    def __init__(self, flickr_key, flickr_secret, sync_content=None, *args, **kwargs):
         """
         Construct a new FlickrSyncr object.
 
@@ -41,6 +42,7 @@ class FlickrSyncr(object):
           flickr_key: a Flickr API key string
           flickr_secret: a Flickr secret key as a string
         """
+        super(FlickrSyncr, self).__init__(*args, **kwargs)
         self.flickr = flickrapi.FlickrAPI(flickr_key, flickr_secret, format='xmlnode')
 
         # define what content to sync

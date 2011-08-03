@@ -2,6 +2,7 @@ import time, datetime, calendar
 import httplib
 import urllib, urllib2
 import base64
+from syncr.app.service import ServiceSyncr
 from syncr.delicious.models import Bookmark
 from taggit.models import Tag
 
@@ -50,7 +51,7 @@ class DeliciousAPI(object):
         f = self.opener.open(request)
         return ET.parse(f)
 
-class DeliciousSyncr(object):
+class DeliciousSyncr(ServiceSyncr):
     """
     DeliciousSyncr objects sync del.icio.us bookmarks to the Django
     backend. The constructor requires a username and password for
@@ -66,7 +67,7 @@ class DeliciousSyncr(object):
     Python 2.5.  Otherwise available at:
     http://effbot.org/zone/element-index.htm
     """
-    def __init__(self, username, password):
+    def __init__(self, username, password, *args, **kwargs):
         """
         Construct a new DeliciousSyncr.
 
@@ -74,6 +75,7 @@ class DeliciousSyncr(object):
           username: a del.icio.us username
           password: the user's password
         """
+        super(DeliciousSyncr, self).__init__(*args, **kwargs)
         self.delicious = DeliciousAPI(username, password)
 
     def clean_tags(self, tags):
