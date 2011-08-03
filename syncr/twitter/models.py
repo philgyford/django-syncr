@@ -48,6 +48,8 @@ class TwitterUser(models.Model):
     followers   = models.ManyToManyField('self', symmetrical=False,
                     blank=True, null=True,
                     related_name='followers_user_set')
+    last_tweet_synced = models.BigIntegerField(blank=True, null=True,
+            help_text="If this user has their tweets synced, this is the most recent tweet's Twitter ID.")
 
     def numFriends(self):
         return self.friends.count()
