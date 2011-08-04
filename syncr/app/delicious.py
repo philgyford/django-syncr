@@ -117,35 +117,10 @@ class DeliciousSyncr(ServiceSyncr):
                             post_hash=post_hash, defaults=default_dict)
 
             # Add/remove tags.
-
-            remote_slugs = self.clean_tags(post_elem.attrib['tag'])
-            local_slugs = set([])
-            local_tags = []
-            if not created:
-                # Bookmark already in database, so get existing local tags.
-                local_tags = bookmark_obj.tags.all()
-                local_slugs = set([tag.slug for tag in local_tags])
-
-            # Are there any new slugs to add?
-            slugs_to_add = remote_slugs.difference(local_slugs)
-            if len(slugs_to_add):
-                tags_to_add = []
-                for slug in slugs_to_add:
-                    tag_obj, tag_created = Tag.objects.get_or_create(
-                            slug=slug, defaults={'name':slug}
-                    )
-                    tags_to_add.append(tag_obj)
-                bookmark_obj.tags.add(*tags_to_add)
-
-            # Are there any slugs held locally that have been removed on the remote
-            # bookamrk?
-            slugs_to_remove = local_slugs.difference(remote_slugs)
-            if len(slugs_to_remove):
-                tags_to_remove = []
-                for tag in local_tags:
-                    if tag.slug in slugs_to_remove:
-                        tags_to_remove.append(tag)
-                bookmark_obj.tags.remove(*tags_to_remove)
+            remote_slugnames = {}
+            for slug in self.clean_tags(post_elem.attrib['tag']):
+                remote_slugnames[slug] = slug
+            self.syncTags(remote_slugnames, bookmark_obj)
 
             return bookmark_obj
         return None

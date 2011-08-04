@@ -101,18 +101,17 @@ class YoutubeSyncr(ServiceSyncr):
 	    'length': result.find('{%s}group/{%s}duration' %
 				  (MRSS_NS, YOUTUBE_NS)).attrib['seconds'],
 	    }
-        obj, created = Video.objects.get_or_create(feed = video_feed,
+        video_obj, created = Video.objects.get_or_create(feed = video_feed,
                                                    defaults=default_dict)
-        
-        if created:
-            from django.template.defaultfilters import slugify
-            for keyword in result.findtext('{%s}group/{%s}keywords' % (MRSS_NS, MRSS_NS)).split(', '):
-                tag_obj, tag_created = Tag.objects.get_or_create(
-                    slug=slugify(keyword), defaults={'name':keyword}
-                )
-                obj.tags.add(tag_obj)
 
-        return obj
+        # Add/remove tags.
+        remote_slugnames = {}
+        from django.template.defaultfilters import slugify
+        for keyword in result.findtext('{%s}group/{%s}keywords' % (MRSS_NS, MRSS_NS)).split(', '):
+            remote_slugnames[slugify(keyword)] = keyword
+        self.syncTags(remote_slugnames, video_obj)
+
+        return video_obj
 
     def syncUser(self, username):
         """Synchronize a Youtube user profile based on username

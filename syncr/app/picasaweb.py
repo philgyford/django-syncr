@@ -21,7 +21,7 @@ from taggit.models import Tag
 class PicasawebSyncrError(Exception):
     pass
 
-class PicasawebSyncr(object):
+class PicasawebSyncr(ServiceSyncr):
     """PicasaSyncr objects sync picasaweb photos, photo sets, and favorites
     lists with the Django backend.
 
@@ -130,56 +130,21 @@ class PicasawebSyncr(object):
         photo_obj, created = Photo.objects.get_or_create(gphoto_id = gphoto_id,
                                                        defaults=default_dict)
 
-        # Add/remove tags
-
-        # Gets complicated as we need to match against slugs but add original names.
-        local_slugs = set([])
-        remote_slugs = set([])
-        local_tags = []
-        remote_names = []
-        if not created:
-            # This photo is already in database, so get its existing local tags.
-            local_tags = photo_obj.tags.all()
-            local_slugs = set([tag.slug for tag in local_tags])
-
+        # Add/remove tags.
+        remote_slugnames = {}
         if photo_entry.media.keywords.text:
             # Get the "names" and slugs from the remote photo data.
             from django.template.defaultfilters import slugify
-            remote_names = photo_entry.media.keywords.text.split(', ')
-            remote_slugs = set([slugify(name) for name in remote_names])
+            for name in photo_entry.media.keywords.text.split(', '):
+                remote_slugnames[slugify(name)] = name
 
-        # Are there any new slugs to add?
-        slugs_to_add = remote_slugs.difference(local_slugs)
-        if len(slugs_to_add):
-            # Yes.
-            tags_to_add = []
-            for name in remote_names:
-                # If the slug-form of any of the vanilla keyword names are to be 
-                # added:
-                if slugify(name) in slugs_to_add:
-                    tag_obj, tag_created = Tag.objects.get_or_create(
-                            slug=slugify(name), defaults={'name':name}
-                    )
-                    tags_to_add.append(tag_obj)
-            photo_obj.tags.add(*tags_to_add)
-
-        # Are there any slugs held locally that have been removed on the remote 
-        # photo?
-        slugs_to_remove = local_slugs.difference(remote_slugs)
-        if len(slugs_to_remove):
-            # Yes.
-            tags_to_remove = []
-            for tag in local_tags:
-                if tag.slug in slugs_to_remove:
-                    tags_to_remove.append(tag)
-            photo_obj.tags.remove(*tags_to_remove)
+        self.syncTags(remote_slugnames, photo_obj)
 
 
         if self.cli_verbose:
             status = created and "created" or "already exists (same)"
             if photo_obj.updated<updated:
                 status = "updated"
-            print "photo", photo_obj, status
 
         if not created and photo_obj.updated<updated:
             # update object
