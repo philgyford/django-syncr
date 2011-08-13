@@ -1,10 +1,10 @@
 # django-syncr
 
-(Current dev branch, MAJOR CHANGE: Switched from using django-tagger to [django-taggit](https://github.com/alex/django-taggit/).)
-
 **A collection of Django applications for saving your activity on other websites (such as Flickr, Twitter, YouTube, etc) in your local database.** 
 
 This project was begun by Jesse Legg [at Google Code](http://code.google.com/p/django-syncr/), which seemed to stop in 2008. Dan Fairs [did some updates](https://github.com/danfairs/django-syncr) until 2010. Phil Gyford [is currently working on this fork](https://github.com/philgyford/django-syncr). See "Changes from earlier versions" below for what's new. Other than this README, docs have not been updated for a while.
+
+**NOTE:** As of v0.60, this branch has switched from using django-tagger to [django-taggit](https://github.com/alex/django-taggit/) for those apps which feature tags. Upgrading an existing django-syncr install to this version will require some manual changes (the included South migrations may help).
 
 See [the Issues](https://github.com/philgyford/django-syncr/issues) for known new issues, or the [Google Code issues](http://code.google.com/p/django-syncr/issues/list) for older ones, possibly still extant.
 
@@ -21,7 +21,7 @@ django-syncr provides no views or templates for viewing your locally-stored data
 
 [South](http://south.aeracode.org/) migrations are available for all apps.
 
-[Phil Gyford](http://www.gyford.com/), 31 July 2011.
+[Phil Gyford](http://www.gyford.com/), 13 August 2011.
 
 
 ## Services
@@ -35,7 +35,7 @@ Here are the services covered, with their dependencies, and the rough known stat
 
 Requires: [python-twitter](http://code.google.com/p/python-twitter/)
 
-Can fetch a user's Tweets, lists of Friends and Followers, and Friends' Tweets.  The quantity of each is currently quite limited. Stores the in-reply-to and latitude/longitude of each Tweet, if available, and most of the users' data.
+Can fetch a user's Tweets, lists of Friends and Followers, and Friends' Tweets.  The quantity of Friends and Followers is currently quite limited. Stores the in-reply-to and latitude/longitude of each Tweet, if available, and most of the users' data.
 
 
 ### [Flickr](http://www.flickr.com/)
@@ -44,7 +44,7 @@ Can fetch a user's Tweets, lists of Friends and Followers, and Friends' Tweets. 
 
 Requires: [flickrapi](http://stuvel.eu/flickrapi), [django-taggit](https://github.com/alex/django-taggit/).
 
-Can fetch a user's public photos, recent photos, public favorites, photo sets.  The Photo model stores most/all data, including geo and EXIF data, and data about tags. Comments on photos are also stored. The images themselves are not stored locally.
+Can fetch a user's public photos, recent photos, public favorites, photo sets.  The Photo model can store most/all data, including geo and EXIF data, and data about tags. Comments on photos are also stored. The images themselves are not stored locally.
 
 
 ### [Delicious](http://www.delicious.com/)
@@ -53,7 +53,7 @@ Can fetch a user's public photos, recent photos, public favorites, photo sets.  
 
 Requires: [django-taggit](https://github.com/alex/django-taggit/).
 
-Fetches a user's bookmarks. All, most recent, a specific tag, or a specific date.
+Fetches a user's bookmarks. It can fetch all of them, the most recent, a specific tag, or a specific date.
 
 
 ### [YouTube](http://www.youtube.com/)
