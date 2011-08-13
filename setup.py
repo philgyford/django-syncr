@@ -2,11 +2,11 @@ from setuptools import setup, find_packages
  
 setup(
     name='django-syncr',
-    version='0.50',
+    version='0.60',
     description='Synchronize Django with the web',
-    author='Jesse Legg',
-    author_email='jesse.legg@gmail.com',
-    url='http://code.google.com/p/django-syncr',
+    author='Phil Gyford',
+    author_email='phil@gyford.com',
+    url='http://github.com/philgyford/django-syncr',
     packages=find_packages(),
     classifiers=[
         'Development Status :: 3 - Alpha',
